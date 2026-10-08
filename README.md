@@ -1,40 +1,39 @@
-Spark Forensics Lab
+# Spark Forensics Lab
 
 I am using this repository to understand why Spark jobs become slow.
 
-The idea is simple: create a workload with a known problem, collect the Spark event log, and investigate what actually happened instead of guessing from the final runtime.
+The method is simple: create a workload with a known problem, capture the Spark event log, inspect task-level metrics, and use the evidence to form a diagnosis.
 
-Current experiment
+## Current experiment: join skew
 
-The first experiment looks at join skew.
+The first experiment creates an intentionally uneven join workload. The objective is to see how skew appears in Spark execution rather than judging the job only by total runtime.
 
-The workload is intentionally uneven, so some tasks receive much more data than others.
+The forensic analysis looks at:
 
-The event log is then used to examine:
+- task duration
+- shuffle read
+- shuffle records
+- spill
+- JVM GC time
 
-task duration
+The analyzer then applies simple signals to identify likely bottlenecks.
 
-shuffle read
+## Comparison
 
-records processed
+The same logical workload can be compared under different execution strategies, such as Adaptive Query Execution and salting. The important rule is to keep the data and query semantics equivalent so that the comparison is meaningful.
 
-spill
+## Repository structure
 
-JVM GC time
+```text
+src/                     event-log parser and diagnosis logic
+experiments/             reproducible Spark workloads
+tests/                   parser and diagnosis tests
+docs/                    reasoning, experiment notes, and runbooks
+evidence/                screenshots and measured outputs
+```
 
-The analyzer uses those measurements to identify the likely bottleneck.
+## How to read this project
 
-Next experiment
+Start with `docs/01-project-overview.md`, then `docs/02-forensic-method.md`, and finally the experiment note for the workload you want to investigate.
 
-The same workload is being compared with:
-
-Adaptive Query Execution
-
-salting
-
-The data and query remain the same. The goal is to see what changes in the execution and whether the result remains identical.
-
-Notes
-
-This repository is being built experiment by experiment.
-
+This repository records what was actually observed. No benchmark result is claimed until the workload has been executed and the evidence has been saved.
